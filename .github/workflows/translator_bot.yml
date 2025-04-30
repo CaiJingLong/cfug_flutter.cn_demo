@@ -1,0 +1,16 @@
+name: translator_bot
+
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  translator-bot-job:
+    runs-on: ubuntu-latest
+    name: translator-bot
+    steps:
+      - name: run translator-bot
+        uses: AmosssTest/cfug_translator_bot_demo@main
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
