@@ -33,14 +33,16 @@ except Exception as e:
 
 # 系统提示，定义 Agent 的角色和任务
 SYSTEM_PROMPT = f"""
-你是一位专业的翻译专家，擅长将各种文档按照规则翻译成中文。
+# 你是一位专业的翻译专家，擅长将各种文档按照规则翻译成中文。
 
-翻译的总要求：
+# 翻译的总要求：
+
+要格外注意的一点是，英文原文要保留
+
 {total_rules}
 
-翻译的规则：
+# 翻译的规则：
 {rules}
-
 
 """
 
@@ -135,4 +137,6 @@ if __name__ == "__main__":
     result = translate_doc(get_content_url(example_url))
     print("<--- Translated Output --->")
     print(result)
+    with open('result.md', 'w', encoding='utf-8') as f:
+        f.write(result)
     print("<--- Translated Output End --->")
