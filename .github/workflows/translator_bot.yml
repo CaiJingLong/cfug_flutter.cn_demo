@@ -64,8 +64,8 @@ jobs:
       - name: Prepare dependencies
         if: steps.entry.outputs.valid == 'true' && steps.extract-comment.outputs.valid == 'true'
         run: |
-          flutter --version
-          flutter pub get
+          dart --version
+          dart pub get
       # - name: run translator-bot
       #   uses: AmosssTest/cfug_translator_bot_demo@main
       #   with:
