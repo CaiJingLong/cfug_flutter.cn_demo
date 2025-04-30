@@ -9,8 +9,65 @@ jobs:
     runs-on: ubuntu-latest
     name: translator-bot
     steps:
-      - name: run translator-bot
-        uses: AmosssTest/cfug_translator_bot_demo@main
+      - name: Entry verification
+        id: entry
+        if: |
+          github.event_name == 'issue_comment' &&
+          !github.event.issue.pull_request &&
+          contains(fromJson('["member", "owner"]'), github.event.comment.author_association)
+        run: echo "valid=true" >> $GITHUB_OUTPUT
+        shell: bash
+
+      - name: Check out
+        if: steps.entry.outputs.valid == 'true'
+        uses: actions/checkout@v4
+
+      - name: Check comment pattern and extract path
+        if: steps.entry.outputs.valid == 'true'
+        id: extract-comment
+        uses: actions/github-script@v6
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            // 获取评论内容并清理格式
+            const rawComment = context.payload.comment.body;
+            const cleanComment = rawComment.trim();
+            
+            // 判断是否只有一行
+            const isSingleLine = !cleanComment.includes('\n');
+
+            if (!isSingleLine) {
+              core.setOutput('valid', 'false');
+              console.log('⏩ 非有效单行命令，跳过后续步骤');
+              return;
+            }
+            
+            // 单行命令 `/translator-bot <文件路径>`
+            // 允许 /translator-bot 后跟任意空格，捕获路径部分
+            const pattern = /^\/translator-bot\s+(\S+)$/;
+            const match = cleanComment.match(pattern);
+
+            if (match && match[1]) {
+              core.setOutput('valid', 'true');
+              // 输出提取的路径到 Action 变量
+              core.setOutput('file_path', match[1]);
+              console.log(`✅ 提取评论成功，文件路径: ${match[1]}`);
+            } else {
+              core.setOutput('valid', 'false');
+              core.setFailed('⏩ 没有匹配，跳过后续步骤');
+            }
+
+      - if: steps.entry.outputs.valid == 'true' && steps.extract-comment.outputs.valid == 'true'
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: '3.7'
+      - name: Prepare dependencies
+        if: steps.entry.outputs.valid == 'true' && steps.extract-comment.outputs.valid == 'true'
+        run: |
+          flutter --version
+          flutter pub get
+      # - name: run translator-bot
+      #   uses: AmosssTest/cfug_translator_bot_demo@main
+      #   with:
+      #     github_token: ${{ secrets.GITHUB_TOKEN }}
+      #     gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
