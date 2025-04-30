@@ -54,7 +54,7 @@ jobs:
               console.log(`✅ 提取评论成功，文件路径: ${match[1]}`);
             } else {
               core.setOutput('valid', 'false');
-              core.setFailed('⏩ 没有匹配，跳过后续步骤');
+              console.log('⏩ 没有匹配，跳过后续步骤');
             }
 
       - if: steps.entry.outputs.valid == 'true' && steps.extract-comment.outputs.valid == 'true'
